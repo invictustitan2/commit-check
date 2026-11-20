@@ -29,6 +29,17 @@ jobs:
       with:
         python-version: '3.x'
 
+    # Before anything is built. pyproject.toml sets readme = "README.md", so
+    # the README in this tag becomes the description PyPI shows for this
+    # version, and PyPI cannot change it after the upload. A release whose
+    # README names another version stops here. A manual run is a TestPyPI
+    # rehearsal with no release tag to compare, so it is not checked.
+    - name: Check the README pins this release
+      if: github.event_name == 'release'
+      env:
+        TAG: ${{ github.event.release.tag_name }}
+      run: sh .github/readme-pin.sh check "$TAG"
+
     - name: Build wheel
       run: |
         # Install dependencies
@@ -43,6 +54,7 @@ jobs:
         twine check dist/commit_check*
 
     - name: Create attestations
+      if: github.repository == 'commit-check/commit-check'  # FORK TEST ONLY: no Sigstore entries for fork wheels
       uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
       with:
         subject-path: "dist/commit_check*"
