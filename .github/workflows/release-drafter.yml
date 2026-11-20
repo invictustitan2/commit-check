@@ -45,6 +45,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           token: ${{ secrets.README_PIN_TOKEN }}
+          # Not written into .git/config; the push below authenticates
+          # through gh, which reads GH_TOKEN when git asks.
+          persist-credentials: false
 
       - name: Read the draft's tag
         id: draft
@@ -77,6 +80,7 @@ jobs:
             exit 0
           fi
 
+          gh auth setup-git
           git switch -c "$BRANCH"
           sh .github/readme-pin.sh write "$TAG"
           git -c user.name="github-actions[bot]" \
